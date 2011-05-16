@@ -27,7 +27,12 @@ Github site: http://github.com/razorjack/quicksand
             enhancement: function(c) {}, // Visual enhacement (eg. font replacement) function for cloned elements
             selector: '> *',
             dx: 0,
-            dy: 0
+            dy: 0,
+            offsetX: 0,
+            offsetY: 0,
+            scaleCasualties: '1', // sturob, scale to animate remove elements to
+            scaleSurvivors: '1'  // sturob, what scale to animate continuing elements to
+            // width: sturob no default
         };
         $.extend(options, customOptions);
         
@@ -152,7 +157,7 @@ Github site: http://github.com/razorjack/quicksand
             rawDest.innerHTML = '';
             rawDest.setAttribute('id', '');
             rawDest.style.height = 'auto';
-            rawDest.style.width = $sourceParent.width() + 'px';
+            rawDest.style.width = (options.width || $sourceParent.width()) + 'px';
             $dest.append($collection);      
             // insert node into HTML
             // Note that the node is under visible source container in the exactly same position
@@ -206,13 +211,13 @@ Github site: http://github.com/razorjack/quicksand
                 if (destElement.length) {
                     // The item is both in source and destination collections
                     // It it's under different position, let's move it
-                    if (!options.useScaling) {
+                    if (options.scaleSurvivors == '1') {
                         animationQueue.push(
                                             {
-                                                element: $(this), 
+                                                element: $(this),
                                                 animation: 
-                                                    {top: destElement.offset().top - correctionOffset.top, 
-                                                     left: destElement.offset().left - correctionOffset.left, 
+                                                    {top: destElement.offset().top - correctionOffset.top + options.offsetY, 
+                                                     left: destElement.offset().left - correctionOffset.left + options.offsetX, 
                                                      opacity: 1.0
                                                     }
                                             });
@@ -220,10 +225,10 @@ Github site: http://github.com/razorjack/quicksand
                     } else {
                         animationQueue.push({
                                             element: $(this), 
-                                            animation: {top: destElement.offset().top - correctionOffset.top, 
-                                                        left: destElement.offset().left - correctionOffset.left, 
-                                                        opacity: 1.0, 
-                                                        scale: '1.0'
+                                            animation: {top: destElement.offset().top - correctionOffset.top + options.offsetY, 
+                                                        left: destElement.offset().left - correctionOffset.left + options.offsetX, 
+                                                        opacity: 1.0,
+                                                        scale: options.scaleSurvivors
                                                        }
                                             });
 
@@ -231,12 +236,12 @@ Github site: http://github.com/razorjack/quicksand
                 } else {
                     // The item from source collection is not present in destination collections
                     // Let's remove it
-                    if (!options.useScaling) {
+                    if (options.scaleCasualties == '1') {
                         animationQueue.push({element: $(this), 
                                              animation: {opacity: '0.0'}});
                     } else {
                         animationQueue.push({element: $(this), animation: {opacity: '0.0', 
-                                         scale: '0.0'}});
+                                         scale: options.scaleCasualties }});
                     }
                 }
             });
@@ -269,14 +274,14 @@ Github site: http://github.com/razorjack/quicksand
                 var animationOptions;
                 if (sourceElement.length === 0) {
                     // No such element in source collection...
-                    if (!options.useScaling) {
+                    if (options.scaleSurvivors == '1') {
                         animationOptions = {
                             opacity: '1.0'
                         };
                     } else {
                         animationOptions = {
                             opacity: '1.0',
-                            scale: '1.0'
+                            scale: options.scaleSurvivors
                         };
                     }
                     // Let's create it
@@ -288,7 +293,7 @@ Github site: http://github.com/razorjack/quicksand
                     rawDestElement.style.left = destElement.offset().left - correctionOffset.left + 'px';
                     d.css('opacity', 0.0); // IE
                     if (options.useScaling) {
-                        d.css('transform', 'scale(0.0)');
+                        d.css('transform', 'scale(' + options.scaleCasualties + ')');
                     }
                     d.appendTo($sourceParent);
                     
